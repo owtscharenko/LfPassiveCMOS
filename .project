@@ -4,8 +4,8 @@
 	<comment></comment>
 	<projects>
 		<project>basil</project>
-		<project>pybar-dev</project>
-		<project>TSV-scripts</project>
+		<project>pyBARdev</project>
+		<project>TSVscripts</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
