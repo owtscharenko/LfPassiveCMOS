@@ -1,0 +1,64 @@
+transfer_layer:
+#  - name     : Visa
+#    type     : Visa
+#    init     :
+#        resource_name : ASRLCOM15::INSTR # Windows
+#        resource_name       : ASRL/dev/ttyUSB0 # Linux
+#        read_termination    : "\r"
+#        baud_rate           : 19200
+#        backend             : "@py"
+#        query_delay         : 0.01
+#        timeout             : 2000
+
+#  - name     : Serial
+#    type     : Serial
+#    init     :
+#        port             : /dev/ttyUSB0 # Linux
+#        read_termination : "\r"
+#        baudrate         : 19200
+        
+
+#  - name  : visa_sm3
+#    type  : Serial
+#    init  :
+#        port    : COM7
+#        read_termination : "\r"
+#        baudrate        : 19200
+#        backend          : "@py"
+#        query_delay      : 0.01
+#        timeout          : 3000
+
+    - name : Visa
+      type : Visa
+      init :
+          resource_name : TCPIP::131.220.165.166
+          backend : "@py"
+          #read_termination : "\n"
+
+#    - name : USB
+#      type : Visa
+#      init :
+#          resource_name : /dev/usbtmc0
+#          backend : "@py"
+
+hw_drivers:
+#  - name      : Sourcemeter
+#    type      : scpi
+#    interface : Visa
+#	 interface : Serial
+#    init      :
+#        device  : Keithley 2410
+
+ 
+   - name      : Sourcemeter
+     type      : scpi
+     interface : Visa
+     init      :
+          device    : Keithley 2450    #2451 is for the 2450 masked as 2400 (setting on multimeter: scpi or scpi2400 )
+         
+#  - name      : Sourcemeter3
+#    type      : scpi
+#    interface : visa_sm1
+#    init      :
+#         device    : Keithley 2000
+
