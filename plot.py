@@ -54,7 +54,6 @@ class LfCMOSplot(object):
 
         voltage, voltage_std_dev = self.TSV.unpack_uncertainties(x)
         current, current_std_dev = self.TSV.unpack_uncertainties(y)
-        
         p, covariance =  curve_fit(self.TSV.fitfunction_line, voltage, current, p0=(0,0))
         plt.cla()
 #         plt.xlim(0,0.2)
@@ -68,8 +67,9 @@ class LfCMOSplot(object):
         ax = plt.axes()
 #         ax.text(0.1, round(((ax.get_ylim()[1] + ax.get_ylim()[0])/2), 0), textstr, bbox=dict(boxstyle='square', facecolor='white'))
 #         ax.add_artist(box)
-        plt.errorbar(voltage,current, voltage_std_dev, current_std_dev, 'b.', markersize = 3, label = 'data')
-        plt.plot(self.TSV.fitfunction_line(voltage, *p),'r-', linewidth = 1.2, label = 'fit \n'+ textstr)
+        plt.errorbar(voltage,current, voltage_std_dev, current_std_dev, 'b.', markersize = 3, errorevery = 5,label = 'data')
+        dummy = np.linspace(min(voltage), max(voltage), 100)
+#         plt.plot(dummy, self.TSV.fitfunction_line(dummy, *p),'r-', linewidth = 1.2, label = 'fit \n'+ textstr)
         leg = plt.legend(loc = 'best', numpoints = 1)
 #         plt.draw()
 #         loc = leg.get_window_extent().inverse_transformed(ax.transAxes)

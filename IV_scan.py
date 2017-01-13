@@ -3,9 +3,9 @@ import csv
 
 from IV_loop import IV
 
-from tsv_scans.playing_with_plots import TSV_res_meas_analysis as TSV
+# from tsv_scans.playing_with_plots import TSV_res_meas_analysis as TSV
 from plot import LfCMOSplot as LF
-from uncertainties import ufloat, unumpy as unp
+# from uncertainties import ufloat, unumpy as unp
 
 from basil.dut import Dut
 
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     dut.init()
     workdir = '/media/niko/data/LfPassiveCMOS/test'
     os.chdir(workdir)
-    f = 'test.csv'
+    f = 'testvia.csv'
     
     devices = {'central':dut['Sourcemeter1']} #,'metal':dut['Sourcemeter2'],'backside':dut['Sourcemeter3']}
     
