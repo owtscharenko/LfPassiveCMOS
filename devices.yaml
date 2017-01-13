@@ -10,12 +10,12 @@ transfer_layer:
 #        query_delay         : 0.01
 #        timeout             : 2000
 
-#  - name     : Serial
-#    type     : Serial
-#    init     :
-#        port             : /dev/ttyUSB0 # Linux
-#        read_termination : "\r"
-#        baudrate         : 19200
+  - name     : Serial
+    type     : Serial
+    init     :
+        port             : /dev/ttyUSB0 # Linux
+        read_termination : "\r"
+        baudrate         : 19200
         
 
 #  - name  : visa_sm3
@@ -28,12 +28,12 @@ transfer_layer:
 #        query_delay      : 0.01
 #        timeout          : 3000
 
-    - name : Visa
-      type : Visa
-      init :
-          resource_name : TCPIP::131.220.165.166
-          backend : "@py"
-          #read_termination : "\n"
+#    - name : Visa
+#      type : Visa
+#      init :
+#          resource_name : TCPIP::131.220.165.166
+#          backend : "@py"
+#          #read_termination : "\n"
 
 #    - name : USB
 #      type : Visa
@@ -50,11 +50,11 @@ hw_drivers:
 #        device  : Keithley 2410
 
  
-   - name      : Sourcemeter
+   - name      : Sourcemeter1
      type      : scpi
-     interface : Visa
+     interface : Serial
      init      :
-          device    : Keithley 2450    #2451 is for the 2450 masked as 2400 (setting on multimeter: scpi or scpi2400 )
+          device    : Keithley 2400    #2451 is for the 2450 masked as 2400 (setting on multimeter: scpi or scpi2400 )
          
 #  - name      : Sourcemeter3
 #    type      : scpi
