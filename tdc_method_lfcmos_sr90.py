@@ -89,7 +89,7 @@ if __name__ == "__main__":
         # AC pixel
         runmngr.current_run.register.set_pixel_register_value('Enable', tdc_pixel)
         # Ramp voltage
-        mv = iv_measurement.set_voltage(bias)
+        mv = devices['Sourcemeter'].set_voltage(bias) #iv_measurement.set_voltage(bias)
         time.sleep(5)
         # Deactivate noisy pixel
         status = runmngr.run_run(run=NoiseOccupancyScan, run_conf={'occupancy_limit': 0.00005,
@@ -127,7 +127,7 @@ if __name__ == "__main__":
                                                       'reset_rx_on_error': True,
                                                       "max_triggers": 1000000000})
 
-    iv_measurement.set_voltage(-150)
+    devices['Sourcemeter'].set_voltage(-150)  #iv_measurement.set_voltage(-150)
     
     runmngr.run_run(run=HitOrCalibration, run_conf={'reset_rx_on_error': True,
                                                 "pixels": (np.dstack(np.where(tdc_pixel == 1)) + 1).tolist()[0],
