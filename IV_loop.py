@@ -53,6 +53,11 @@ class IV(object):
         else:
             return float(device.get_current().split(',')[1])
     
+    
+    def set_temp(self, polarity, temp):
+        return
+
+    
     def measure_current(self, device, timeout):
         
 #         was_above = False
@@ -135,7 +140,7 @@ class IV(object):
         time.sleep(self.minimum_delay)
 
 
-    def scan_tsv_res_VOLT(self, file_name, max_Vin, stepsize, *device):
+    def scan_tsv_res_VOLT(self, file_name, max_Vin, polarity, stepsize, *device):
         try:
             self.reset()  
             logging.info("Starting ...")              
@@ -153,13 +158,13 @@ class IV(object):
                     
                 f.writerow(['Input voltage [V]', 'Input current [A]'])           #What is written in the output file
                                                                                      
-                for x in range(0, max_Vin+1):                          #loop over steps                                                                
-                    self.devices['central'].set_voltage(x)          #Set input current
+                for x in range(0, max_Vin+1, stepsize):                          #loop over steps                                                                
+                    self.devices['central'].set_voltage(x*polarity)          #Set input current
                     self.devices['central'].on()                             
                     input_voltage = self.measure_voltage(self.devices['central'], 100)
                     #self.dut['Sourcemeter'].on()
                     input_current = self.measure_current(self.devices['central'], 100)    
-                    logging.info("Set input voltage to %r" % x)
+                    logging.info("Set input voltage to %r V" % x*polarity)
                     logging.info("Input current is %r A" % input_current)                              #Logging the readout
                     logging.info("Input voltage is %r V" % input_voltage)
 #                     Writing readout in output file
@@ -168,8 +173,8 @@ class IV(object):
                     f.writerow(self.data[-1])
 #                     elif input_current < 0:
 #                         print'warning: outside range! current = %f' % input_current
-                    pbar.update(x)                                                  #Increase input current for next iteration   
-                    if input_current >= self.max_current:
+                    pbar.update(x)  
+                    if abs(input_current) >= self.max_current:
                         print 'reached current limit of %f A! aborting' %self.max_current                                                                                                #Maximum values reached?
                         break
                 pbar.finish()

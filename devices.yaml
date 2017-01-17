@@ -1,4 +1,11 @@
+name    : mio
+version : 2.0.0
+
 transfer_layer:
+
+#  - name     : USB
+#    type     : SiUsb
+
 #  - name     : Visa
 #    type     : Visa
 #    init     :
@@ -50,7 +57,7 @@ hw_drivers:
 #        device  : Keithley 2410
 
  
-   - name      : Sourcemeter1
+   - name      : Sourcemeter
      type      : scpi
      interface : Serial
      init      :
@@ -61,4 +68,3 @@ hw_drivers:
 #    interface : visa_sm1
 #    init      :
 #         device    : Keithley 2000
-
