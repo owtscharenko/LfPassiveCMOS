@@ -1,5 +1,6 @@
 import os
 import csv
+import time
 
 from IV_loop import IV
 
@@ -27,8 +28,11 @@ if __name__ == '__main__':
     
     devices = {'central':dut['Sourcemeter']} #,'metal':dut['Sourcemeter2'],'backside':dut['Sourcemeter3']}
     
-#     iv = IV(devices = devices, max_current = 15e-5)
+    iv = IV(devices = devices, max_current = 15e-5)
 #     iv.scan_tsv_res_VOLT(f, voltage,-1, stepsize)
-    t = LF()
-    d = t.load_file(os.path.join(workdir,f))
-    t.plot_IV_curve(d[0],d[1])
+    iv.ramp_to(devices['central'], -50)
+#     time.sleep(20)
+    iv.ramp_down()
+#     t = LF()
+#     d = t.load_file(os.path.join(workdir,f))
+#     t.plot_IV_curve(d[0],d[1])

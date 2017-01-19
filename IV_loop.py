@@ -131,8 +131,25 @@ class IV(object):
                     done[key] = True
             time.sleep(0.5)
             if all([dev for dev in done.itervalues()]):
+                logging.info('finished ramping down')
                 break
-
+    
+    def ramp_to(self, dev, max_value):
+        logging.info('Ramping voltage to %1.0fV...' % max_value)
+        value = int(round(self.get_voltage_reading(dev)))
+        if max_value > value:
+            step = 1
+        else:
+            step = -1
+        
+        while True:
+            value = int(round(self.get_voltage_reading(dev)))
+            if value != max_value:
+                dev.set_voltage(value + step)
+            else:
+                logging.info('Ramping done. Last value was %i' % value)
+                break
+    
 
     def reset(self):
         self.data = []

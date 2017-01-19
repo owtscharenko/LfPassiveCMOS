@@ -20,7 +20,7 @@ from pybar.scans.scan_ext_trigger import ExtTriggerScan
 from pybar.fei4.register_utils import make_box_pixel_mask_from_col_row
 
 #from IVcurve import IVScan
-from pybar.scans.scan_iv import IVScan
+from IV_loop import IV
 
 import os
 
@@ -32,7 +32,9 @@ if __name__ == "__main__":
     target_threshold_plsr_dac = 20
     target_charge_plsr_dac = 270
     target_tot = 8
-
+    
+    max_bias = -55 #bias voltage for sensor
+    
     # Select only AC pixels without edge pixels
     col_span = [2, 7]
     row_span = [336 - 36 + 6, 336 - 5]
@@ -41,15 +43,15 @@ if __name__ == "__main__":
     runmngr = RunManager('configuration.yaml')
   
     runmngr.run_run(run=InitScan)  # to be able to set global register values
-  
-    # FE check and tuning
+#   
+#     # FE check and tuning
     runmngr.run_run(run=DigitalScan)
     runmngr.run_run(run=AnalogScan)  # Heat up the Fe a little bit for PlsrDAC scan
-  
-    # Deduce charge in PlsrDAC from PlsrDAC calibration
-  
-  
-    # Manual threshold tuning since fast binary search does not converge
+#   
+#     # Deduce charge in PlsrDAC from PlsrDAC calibration
+#   
+#   
+#     # Manual threshold tuning since fast binary search does not converge
     runmngr.run_run(run=Fei4Tuning, run_conf={'target_threshold': target_threshold_plsr_dac,
                                               'target_tot': target_tot,
                                               'target_charge': target_charge_plsr_dac,
@@ -58,14 +60,14 @@ if __name__ == "__main__":
     runmngr.run_run(run=AnalogScan, run_conf={'scan_parameters': [('PlsrDAC', target_charge_plsr_dac)],
                                               'mask_steps': 3})
     runmngr.run_run(run=FastThresholdScan, run_conf={'mask_steps': 3})
-   
+     
     runmngr.run_run(run=StuckPixelScan)
-   
+     
     runmngr.run_run(run=NoiseOccupancyScan, run_conf={'occupancy_limit': 0.0001, 'n_triggers': 10000000})  # high occupancy limit to work with strong Sr-90 source
- 
+   
 #     # TDC calibration
     plsr_dacs = [target_threshold_plsr_dac, 23, 26, 30, 35, 40, 50, 60, 70, 80, 100, 120, 150, 200, 250, 300, 400, 600, 800]  # PlsrDAC range for TDC calibration, should start at threshold
-    
+      
     runmngr.run_run(run=HitOrCalibration, run_conf={'reset_rx_on_error': True,
                                                     "pixels": (np.dstack(np.where(tdc_pixel == 1)) + 1).tolist()[0],
                                                     'n_injections': 200,
@@ -73,14 +75,17 @@ if __name__ == "__main__":
                                                                         ('row', None),
                                                                         ('PlsrDAC', plsr_dacs)]
                                                     })
+ 
+ 
+ 
+    dut = Dut('devices-noFE.yaml')
+    dut.init()
+    device = {'one':dut['Sourcemeter']}
 
-
-    devices = Dut('devices.yaml')
-    devices.init()
-
-    iv_measurement = IVScan(devices)
-
-    for bias in range(-175, -50, 5):
+    iv = IV(devices = device, max_current = 15e-5)
+#     iv_measurement = IVScan(devices)
+    iv.ramp_to(device['one'], max_bias)
+    for bias in range(max_bias, -50, 5):
         runmngr = RunManager('configuration.yaml')
         time.sleep(1)
         runmngr.run_run(run=InitScan)
@@ -89,7 +94,9 @@ if __name__ == "__main__":
         # AC pixel
         runmngr.current_run.register.set_pixel_register_value('Enable', tdc_pixel)
         # Ramp voltage
-        mv = devices['Sourcemeter'].set_voltage(bias) #iv_measurement.set_voltage(bias)
+        device['one'].set_voltage(bias)
+        mv = iv.get_voltage_reading(device['one']) #iv_measurement.set_voltage(bias)
+        print mv
         time.sleep(5)
         # Deactivate noisy pixel
         status = runmngr.run_run(run=NoiseOccupancyScan, run_conf={'occupancy_limit': 0.00005,
@@ -126,8 +133,7 @@ if __name__ == "__main__":
                                                       "no_data_timeout": 20,
                                                       'reset_rx_on_error': True,
                                                       "max_triggers": 1000000000})
-
-    devices['Sourcemeter'].set_voltage(-150)  #iv_measurement.set_voltage(-150)
+    iv.ramp_to(device['one'], max_bias)  #iv_measurement.set_voltage(-150)
     
     runmngr.run_run(run=HitOrCalibration, run_conf={'reset_rx_on_error': True,
                                                 "pixels": (np.dstack(np.where(tdc_pixel == 1)) + 1).tolist()[0],
@@ -136,3 +142,11 @@ if __name__ == "__main__":
                                                                     ('row', None),
                                                                     ('PlsrDAC', plsr_dacs)]
                                                 })
+    iv.ramp_down()
+    last_voltage = iv.get_voltage_reading(device['one'])
+    print 'Bias voltage is %f V' %last_voltage
+    if abs(last_voltage) <= 5:
+        device['one'].off()
+        print 'script finished'
+    else:
+        print 'Sourcemeter is not off, bias voltage > 2V'

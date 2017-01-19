@@ -24,7 +24,12 @@ transfer_layer:
         read_termination : "\r"
         baudrate         : 19200
         
-
+   - name   : Serial2
+     type   : Serial
+     init   :
+        port             : /dev/ttyUSB1
+        read_termination : "/r"
+        baudrate         : 115200
 #  - name  : visa_sm3
 #    type  : Serial
 #    init  :
