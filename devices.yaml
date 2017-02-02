@@ -17,19 +17,21 @@ transfer_layer:
 #        query_delay         : 0.01
 #        timeout             : 2000
 
-  - name     : Serial
-    type     : Serial
-    init     :
-        port             : /dev/ttyUSB0 # Linux
-        read_termination : "\r"
-        baudrate         : 19200
+   - name     : Serial
+     type     : Serial
+     init     :
+         port             : /dev/ttyUSB0 # Linux
+         read_termination : "\r"
+         baudrate         : 19200
         
-   - name   : Serial2
-     type   : Serial
-     init   :
-        port             : /dev/ttyUSB1
-        read_termination : "/r"
-        baudrate         : 115200
+#   - name   : Serial2
+#     type   : Serial
+#     init   :
+#        port             : /dev/ttyUSB1
+#        read_termination : "/r"
+#        baudrate         : 115200
+#        timeout          : 2000
+
 #  - name  : visa_sm3
 #    type  : Serial
 #    init  :
@@ -66,7 +68,7 @@ hw_drivers:
      type      : scpi
      interface : Serial
      init      :
-          device    : Keithley 2400    #2451 is for the 2450 masked as 2400 (setting on multimeter: scpi or scpi2400 )
+          device    : Keithley 2410    #2451 is for the 2450 masked as 2400 (setting on multimeter: scpi or scpi2400 )
          
 #  - name      : Sourcemeter3
 #    type      : scpi

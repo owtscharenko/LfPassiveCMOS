@@ -10,3 +10,5 @@ measure_voltage : MEAS:VOLT?
 set_current_limit : SENS:CURR:PROT
 set_voltage : SOUR:VOLT
 get_voltage : MEAS:VOLT?
+set_autorange : SENS:VOLT:RANG:AUTO OFF
+

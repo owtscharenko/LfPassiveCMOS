@@ -7,6 +7,7 @@ import numpy as np
 from uncertainties import ufloat, unumpy as unp
 from scipy.optimize import curve_fit
 
+
 from tsv_scans.playing_with_plots import TSV_res_meas_analysis as TSV
 
 
@@ -74,33 +75,47 @@ class LfCMOSplot(object):
             return x, y
         
     
-    def plot_IV_curve(self,x,y):
-
+    def plot_IV_curve(self,x,y,fit,logy):
 #         voltage, voltage_std_dev = self.TSV.unpack_uncertainties(x)
 #         current, current_std_dev = self.TSV.unpack_uncertainties(y)
         
-        current = y
-        voltage = x
-        
-        p, covariance =  curve_fit(self.TSV.fitfunction_line, voltage, current, p0=(0,0))
-        plt.cla()
-#         plt.xlim(0,0.2)
-#         plt.ylim(1e-9,1e-5)
-        plt.semilogy()
-        plt.title(self.title + ' IV curve')
-        plt.ylabel('Current [A]')
+        plt.clf()
+        title = ' IV curve'  
+        plt.title(self.title + title)
+        plt.ylabel('Current [$\mathrm{\mu A}$]')
         plt.xlabel('Voltage [V]')
+
+        voltage = np.absolute(x)
+        current = np.absolute(y)* 1e6
+        
+        if not logy:
+            plt.xlim(0,1.1*np.amax(voltage))     
+            plt.ylim(0,1.1*np.amax(current))
+            plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+        
+        if fit:
+            title = ' IV curve fit'
+            p, covariance =  curve_fit(self.TSV.fitfunction_line, voltage, current, p0=(0,0))
+            plt.plot(voltage, current, 'b.', markersize = 8,label = 'data')
+            dummy = np.linspace(min(voltage), max(voltage), 100)
+            textstr=('m = %.3f \n b = %.5f' %(p[0],p[1]))
+            plt.plot(dummy, self.TSV.fitfunction_line(dummy, *p),'r-', linewidth = 1.2, label = 'fit \n'+ textstr)
+
+            print 'covariance: %r' % (np.sqrt(np.diag(covariance)))
+            print 'fit: %r' % p
+            name = 'fit'
+        elif logy:
+            plt.semilogy(voltage, current, '.-', label='data')            
+            name = 'plot-LOG'
+        else:
+            plt.plot(voltage, current, 'b.', markersize = 8,linestyle ='-',label = 'data')  
+            name = 'plot'
 #         plt.errorbar(x, y, yerr=e, fmt=None)
 #         box = AnchoredText('m = %.3f \n b = %.5f' %(p[0],p[1]), bbox_to_anchor=(1,1),loc=1)
-        textstr=('m = %.3f \n b = %.5f' %(p[0],p[1]))
-        ax = plt.axes()
+#         ax = plt.axes()
 #         ax.text(0.1, round(((ax.get_ylim()[1] + ax.get_ylim()[0])/2), 0), textstr, bbox=dict(boxstyle='square', facecolor='white'))
 #         ax.add_artist(box)
-        plt.plot(voltage, current, 'b.', markersize = 8,label = 'data')
 #         plt.errorbar(voltage,current, voltage_std_dev, current_std_dev, 'b.', markersize = 3, errorevery = 5,label = 'data')
-        dummy = np.linspace(min(voltage), max(voltage), 100)
-        plt.plot(dummy, self.TSV.fitfunction_line(dummy, *p),'r-', linewidth = 1.2, label = 'fit \n'+ textstr)
-        leg = plt.legend(loc = 'best', numpoints = 1)
 #         plt.draw()
 #         loc = leg.get_window_extent().inverse_transformed(ax.transAxes)
 #         loc = leg.get_frame().get_bbox().bounds
@@ -108,9 +123,17 @@ class LfCMOSplot(object):
 #         leg_height = loc.p1[1]-loc.p1[0]
 #         print leg_height
 #         textbox = ax.text(-loc.p0[0]-0.05,-loc.p0[1]-0.05, textstr, bbox=dict(boxstyle='square', facecolor='white'))
-        print 'covariance: %r' % (np.sqrt(np.diag(covariance)))
-        print 'fit: %r' % p
-
-        
-        plt.savefig(self.outfile + '-IV-fit.'+ self.outformat)
+        plt.legend(loc = 'best', numpoints = 1)
+        plt.savefig(self.outfile + '-IV-'+ name + '.'+ self.outformat)
         plt.show()
+        
+if __name__ == '__main__':
+    
+    workdir = '/media/niko/data/LfPassiveCMOS/LFCMOS-x-4/IVscans'
+    f = 'LFCMOS-x-4R-10V.csv'
+    
+    os.chdir(workdir)
+    
+    t = LfCMOSplot()
+    x,y = t.load_file(os.path.join(workdir,f))
+    t.plot_IV_curve(x, y, fit = False, logy = True)
