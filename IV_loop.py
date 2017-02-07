@@ -64,14 +64,19 @@ class IV(object):
         for i in range(timeout):
             time.sleep(self.minimum_delay)
             measurement = self.get_current_reading(device)
-            if abs(measurement) < 1e-9 and i > 10:
+
+           # if abs(measurement) < 5e-9 and i > 2:
+            #    break
+            if abs(measurement) <= abs(current):
                 break
-            if abs(abs(measurement) / abs(current) -1) <= 0.01:
+            #if abs(abs(measurement) / abs(current) -1) <= 0.01:
 #                 print abs(abs(measurement) / abs(current) -1)
-                break
+             #   break
             current = measurement
         if i > 0 :
-            print 'current cycles %i' %i     
+            print 'current cycles %i' %i
+        if i == timeout - 1:  # true if the leakage always increased
+            raise RuntimeError('Leakage current is not stable')     
         return measurement
 
 
@@ -102,8 +107,14 @@ class IV(object):
                     done[key] = True
                     continue
                 value = int(self.get_voltage_reading(self.devices[key]))
-                if value != 0.0:
+                if value != 0.0 and abs(value) <= 10:
                     step = -1 if (value > 0) else 1
+                    self.devices[key].set_voltage(value + step)
+                elif abs(value) > 10:
+                    step = -3 if (value > 0) else 3
+                    self.devices[key].set_voltage(value + step)
+                elif abs(value) > 100:
+                    step = -5 if (value > 0) else 5
                     self.devices[key].set_voltage(value + step)
                 else:
                     done[key] = True
@@ -135,7 +146,7 @@ class IV(object):
         time.sleep(self.minimum_delay)
 
 
-    def scan_IV(self, file_name, max_Vin, polarity, stepsize, *device):
+    def scan_IV(self, file_name, min_Vin, max_Vin, polarity, stepsize, *device):
         try:
             self.reset()  
             logging.info("Starting ...")              
@@ -150,20 +161,17 @@ class IV(object):
             pbar = progressbar.ProgressBar(widgets=['', progressbar.Percentage(), ' ', progressbar.Bar(marker='*', left='|', right='|'), ' ', progressbar.AdaptiveETA()], maxval=max_Vin, poll=10, term_width=80).start()               #fancy progress bar
             with open(file_name , 'wb') as outfile:
                 f = csv.writer(outfile ,quoting=csv.QUOTE_NONNUMERIC)
-                    
                 f.writerow(['Input voltage [V]', 'Input current [A]'])           #What is written in the output file
-#                 print self.devices['central'].set_autorange()
-                                               
-                for x in range(0, max_Vin+1, stepsize):                     #loop over steps                                                                
-                    self.devices['central'].set_voltage(x*polarity)
+                
+                for x in range(min_Vin, max_Vin+1, stepsize):
+                    input_voltage = x*polarity                     #loop over steps                                                                
+                    self.devices['central'].set_voltage(input_voltage)
                     time.sleep(self.minimum_delay)          #Set input current
                     self.devices['central'].on()
                     input_current = self.measure_current(self.devices['central'], 50)                             
-                    input_voltage = self.measure_voltage(self.devices['central'], 50)
-                    logging.info("Set input voltage to %r V" % x*polarity)
+#                    input_voltage = self.measure_voltage(self.devices['central'], 50)
+                    logging.info("Set input voltage to %r V" % input_voltage)
                     logging.info("Input current is %r A" % input_current)                              #Logging the readout
-                    logging.info("Input voltage is %r V" % input_voltage)
-#                     Writing readout in output file
                     self.data.append([input_voltage, input_current])                   #Writing readout in output file
                     f.writerow(self.data[-1])
                     pbar.update(x)  
