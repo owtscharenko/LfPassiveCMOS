@@ -23,7 +23,7 @@ class LfCMOSplot(object):
                 raise IOError('Wrong filetype!')
             self.dirpath = os.path.split(path)[0]
             self.outfile = os.path.join(os.path.split(path)[0], (os.path.split(path)[1].split('.')[0]))
-            self.title = os.path.split(path)[1].split('.')[0]
+            self.title = os.path.split(path)[1].split('-')[0]
             
             self.f = os.path.split(path)[1]    
                     
@@ -47,7 +47,7 @@ class LfCMOSplot(object):
                 raise IOError('Wrong filetype!')
             self.dirpath = os.path.split(path)[0]
             self.outfile = os.path.join(os.path.split(path)[0], (os.path.split(path)[1].split('.')[0]))
-            self.title = os.path.split(path)[1].split('.')[0]
+            self.title = os.path.split(path)[1].split('-')[0]
             
             self.f = os.path.split(path)[1]    
                 
@@ -81,9 +81,10 @@ class LfCMOSplot(object):
         
         plt.clf()
         title = ' IV curve'  
-        plt.title(self.title + title)
+        
         plt.ylabel('Current [$\mathrm{\mu A}$]')
         plt.xlabel('Voltage [V]')
+        plt.grid()
 
         voltage = np.absolute(x)
         current = np.absolute(y)* 1e6
@@ -123,6 +124,7 @@ class LfCMOSplot(object):
 #         leg_height = loc.p1[1]-loc.p1[0]
 #         print leg_height
 #         textbox = ax.text(-loc.p0[0]-0.05,-loc.p0[1]-0.05, textstr, bbox=dict(boxstyle='square', facecolor='white'))
+        plt.title(self.title + title)
         plt.legend(loc = 'best', numpoints = 1)
         plt.savefig(self.outfile + '-IV-'+ name + '.'+ self.outformat)
         plt.show()
