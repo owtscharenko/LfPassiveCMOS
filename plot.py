@@ -25,9 +25,15 @@ class LfCMOSplot(object):
             if not os.path.split(path)[1].split('.')[1] == 'csv':
                 raise IOError('Wrong filetype!')
             self.dirpath = os.path.split(path)[0]
-            self.outfile = os.path.join(os.path.split(path)[0], (os.path.split(path)[1].split('.')[0]))
-            self.title1 = re.split('(\d+)', os.path.split(path)[1])[0] + re.split('(\d+)', os.path.split(path)[1])[1] + re.split('(\d+)', os.path.split(path)[1])[2].split('-')[0] #os.path.split(path)[1].split('V')[0]
-            print self.title1
+            self.filename = os.path.split(path)[1].split('.')[0]
+            self.outfile = os.path.join(os.path.split(path)[0], self.filename)
+            title_parts = re.split('(\d+)', self.filename)
+#             print title_parts
+            if len(title_parts) > 3 :
+                self.title1 = title_parts[0] + title_parts[1] + title_parts[2].split('-')[0] #os.path.split(path)[1].split('V')[0]
+            else:
+                self.title1 = title_parts[0] + title_parts[1]
+#             print self.title1
 
             
             self.f = os.path.split(path)[1]    
@@ -44,7 +50,7 @@ class LfCMOSplot(object):
                     x.append(float(row[0]))
                     y.append(float(row[1]))
     
-            return x, y
+            return x, y, self.title1
     
     
     def load_file_err(self,path):
@@ -80,7 +86,7 @@ class LfCMOSplot(object):
             return x, y
         
     
-    def plot_IV_curve(self,x,y,fit,logy):
+    def plot_IV_curve(self,x,y,file_title,fit,logy):
 #         voltage, voltage_std_dev = self.TSV.unpack_uncertainties(x)
 #         current, current_std_dev = self.TSV.unpack_uncertainties(y)
         
@@ -129,31 +135,32 @@ class LfCMOSplot(object):
 #         leg_height = loc.p1[1]-loc.p1[0]
 #         print leg_height
 #         textbox = ax.text(-loc.p0[0]-0.05,-loc.p0[1]-0.05, textstr, bbox=dict(boxstyle='square', facecolor='white'))
-        plt.title(self.title1 + title)
+        plt.title(file_title + title)
         plt.legend(loc = 'best', numpoints = 1)
         plt.savefig(self.outfile + '-IV-'+ name + '.'+ self.outformat)
         plt.show()
     
-    def analyze(self, x1, y1, x2,y2, h5file):
+    def analyze(self, x1, y1, title1, x2,y2, title2, h5file):
         logging.info('Analyze and plot results')
         with tb.open_file(h5file + '.h5', 'r+') as in_file_h5:
             data = in_file_h5.root.IV_data[:]
             # Plot and fit result
             x, y = np.absolute(data['voltage']), np.absolute(data['current']) * 1e6
-            
-            voltage = np.absolute(x1)
-            current = np.absolute(y1)* 1e6
-            
-            voltage1 = np.absolute(x2)
-            current1 = np.absolute(y2)* 1e6             
-           
+
             plt.clf()
+            plt.cla()
 #             plt.ylim(0.0001,50)
 #             plt.xlim(0,50)
 #             plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-            plt.semilogy(x, y, '.-', label='data')
-#             plt.semilogy(voltage, current, '.-', label = 'LFCMOS-x-4L')
-#             plt.semilogy(voltage1, current1, '.-', label = 'LFCMOS-x-7L')
+#             plt.semilogy(x, y, '.-', label='data')
+            voltage = np.absolute(x1)
+            current = np.absolute(y1)* 1e6
+            plt.semilogy(voltage, current, '.-', label = title1)
+            
+            voltage1 = np.absolute(x2)
+            current1 = np.absolute(y2)* 1e6              
+            plt.semilogy(voltage1, current1, '.-', label = title2)
+
             plt.title('300 $\mathrm{\mu m}$ LFCMOS 3 IV curve')
             plt.ylabel('Current [$\mathrm{\mu A}$]')
             plt.xlabel('Voltage [V]')
@@ -161,7 +168,7 @@ class LfCMOSplot(object):
             plt.legend(loc=4)
 
 
-            plt.savefig('lfcmos3-IV-curve-broken.pdf')
+#             plt.savefig('lfcmos3-IV-curve-broken.pdf')
             plt.show()
     
     
@@ -169,13 +176,13 @@ class LfCMOSplot(object):
 if __name__ == '__main__':
     
 
-    workdir = ['/media/niko/data/LfPassiveCMOS/LFCMOS-x-4/IVscans','/media/niko/data/LfPassiveCMOS/LFCMOS-x-7/IVscans','/media/niko/data/LfPassiveCMOS/LFCMOS3/IVscans/lfcmos03with0ohmbiasr']
-    f = ['LFCMOS-x-4L-500mV-steps-10V.csv','LFCMOS-x-7L-20V.csv']
+    workdir = ['/media/niko/data/LfPassiveCMOS/LFCMOS-x-4/IVscans','/media/niko/data/LfPassiveCMOS/bare-chips-100um-no-plasma','/media/niko/data/LfPassiveCMOS/LFCMOS3/IVscans/lfcmos03with0ohmbiasr']
+    f = ['LFCMOS-x-4L-500mV-steps-10V.csv','LFCMOS-w1-200V.csv']
     h5 = ['IVscan_LFCMOSX1passive_100um_NoFE_BGgndIGRflt','14_lfcmos03with0ohmbiasr_iv_scan','23_lfcmos03with0ohmbiasr_iv_scan']
     
     os.chdir(workdir[2])
     
     t = LfCMOSplot()
-    x,y = t.load_file(os.path.join(workdir[0],f[0]))
-    x1,y1 = t.load_file(os.path.join(workdir[1],f[1]))
-    t.analyze(x, y, x1, y1, h5[2])
+    x,y,title1 = t.load_file(os.path.join(workdir[0],f[0]))
+    x1,y1,title2 = t.load_file(os.path.join(workdir[1],f[1]))
+    t.analyze(x, y,title1, x1, y1,title2, h5[2])
